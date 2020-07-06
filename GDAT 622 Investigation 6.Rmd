@@ -1,0 +1,122 @@
+---
+title: "GDAT 622 Investigation 6"
+author: "Pavan Hothi"
+date: "7/5/2020"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+{
+  c("conflicted",   
+    "data.table",    
+    "dplyr",         
+    "drat",          
+    "dtplyr",       
+    "here",
+    "igraph",       
+    "igraphdata",    
+    "intergraph",    
+    "NetData", 
+    "rtweet",
+    "statnet"        
+  ) -> package_names
+  
+  for (package_name in package_names) {
+    if (!is.element(package_name, installed.packages()[, 1])) {
+      install.packages(package_name,
+                       repos = "http://cran.mtu.edu/")
+    }
+    library(
+      package_name,
+      character.only = TRUE,
+      quietly = TRUE,
+      verbose = FALSE
+    )
+  }
+  rm(list = c("package_name", "package_names"))
+  
+  
+  if (!is.element("networkdata", installed.packages()[, 1])) {
+    addRepo("schochastics")
+    install.packages("networkdata")
+  }
+  library(
+    "networkdata",
+    character.only = TRUE,
+    quietly = TRUE,
+    verbose = FALSE
+  )
+}
+
+set_here()
+
+
+options(show.signif.stars = FALSE)
+options(digits = 4)
+```
+
+
+I will be pulling and looking at the last 500 tweets of Nike. 
+```{r}
+get_timeline(c("Nike"), n = 500) -> nike
+
+```
+
+
+Keeping only the reply screen name and tweet text replied with. 
+```{r}
+nike %>%
+  select(., reply_to_screen_name, text) %>% 
+  na.omit(.) %>%
+  distinct(.) -> nike
+
+```
+
+
+Plot
+```{r}
+graph.data.frame(nike) -> nike_graph
+plot(nike_graph, vertex.label = NA)
+
+```
+
+
+Pull Nike's following list in order to better understand interactions. 
+```{r}
+get_friends(415859364) -> nike_following
+
+```
+
+
+Get following lists of some of Nike's following.
+```{r}
+get_friends(23151437) -> following1
+get_friends(2511477648) -> following2
+get_friends(21870081) -> following3
+get_friends(184241421) -> following4
+get_friends(69347129) -> following5
+
+```
+
+
+Combine following lists
+```{r}
+bind_rows(nike_following, following1, following2, following3, following4, following5) -> following_combined
+
+```
+
+
+Plot
+```{r}
+graph.data.frame(following_combined) -> following_combined_graph
+plot(following_combined_graph)
+
+```
+
+Look up one of the connections
+```{r}
+lookup_users("71026122")
+```
+Funnily enough, it appears that the McDonald's twitter account has some connections to some of the same accounts as Nike's twitter. Wouldn't have expected a fast food chain to have connections with an athletic company. 
